@@ -1,16 +1,15 @@
 package com.sample.logging;
 
 
-import com.netflix.hystrix.HystrixCommand;
+import com.netflix.hystrix.HystrixInvokableInfo;
 import com.netflix.hystrix.HystrixRequestLog;
 import com.sample.utils.RequestScopeObject;
 
 public class LoggingHelper {
-	@SuppressWarnings("deprecation")
 	public static void log() {
-			for(HystrixCommand<?> hystrixCommand : HystrixRequestLog.getCurrentRequest().getExecutedCommands()) {
+			for(HystrixInvokableInfo<?> hystrixCommand : HystrixRequestLog.getCurrentRequest().getAllExecutedCommands()) {
 				StringBuilder strBuilder = new StringBuilder();
-				strBuilder.append("tid=").append(RequestScopeObject.get()).append(" ");
+				strBuilder.append("tid=").append(RequestScopeObject.get());
 				strBuilder.append(",CommandGroup=").append(hystrixCommand.getCommandGroup().name());
 				strBuilder.append(",Command=").append(hystrixCommand.getCommandKey().name());
 				strBuilder.append(",ExecTime=").append(hystrixCommand.getExecutionTimeInMilliseconds());
