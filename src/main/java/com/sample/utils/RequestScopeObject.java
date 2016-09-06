@@ -1,4 +1,4 @@
-package com.intuit;
+package com.sample.utils;
 
 public class RequestScopeObject {
 

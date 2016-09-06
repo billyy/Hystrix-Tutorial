@@ -1,4 +1,4 @@
-package com.intuit;
+package com.sample.callable;
 
 
 import java.util.concurrent.Callable;

@@ -1,4 +1,4 @@
-package com.intuit;
+package com.sample.commands;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,8 +31,7 @@ public final class StockCommand extends HystrixCommand<Map<String, String>> {
     public StockCommand(String symbol) {
         super(HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("StockGroup"))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
-                        // .withExecutionTimeoutInMilliseconds(5000)
-                         ));
+                        ));
          query = String.format(QUERY_FORMAT, symbol);
     }
 
@@ -40,7 +39,6 @@ public final class StockCommand extends HystrixCommand<Map<String, String>> {
     protected Map<String, String> run() throws ClientProtocolException, IOException {
 		HttpClient httpclient = HttpClientBuilder.create().build();
 		Map<String, String> retMap = null;
-		  //System.out.println("Inside StockCommand");
 		  
 	      // specify the host, protocol, and port
 		String url = DynamicPropertyFactory.getInstance()
@@ -50,31 +48,25 @@ public final class StockCommand extends HystrixCommand<Map<String, String>> {
 			    .getIntProperty("com.intuit.external.stock.port", 80)
 			    .get();
 
-	      HttpHost target = new HttpHost(url, port, "http");
+	    HttpHost target = new HttpHost(url, port, "http");
 	       
-	      // specify the get request
-	      HttpGet getRequest = new HttpGet(query);	 
+	    // specify the get request
+	    HttpGet getRequest = new HttpGet(query);	 
  	 
-	      HttpResponse httpResponse = httpclient.execute(target, getRequest);
-	      HttpEntity entity = httpResponse.getEntity();
+	    HttpResponse httpResponse = httpclient.execute(target, getRequest);
+	    HttpEntity entity = httpResponse.getEntity();
 	     	 
-	      if (entity != null) {
+	    if (entity != null) {
 	        String jsonString = EntityUtils.toString(entity).substring(3);
-//	        System.out.println(jsonString);
 	        Gson gson = new GsonBuilder().create();
 	        ArrayList<Map<String, String>> myList = gson.fromJson(jsonString,
 	                new TypeToken<ArrayList<HashMap<String, String>>>() {
 	                }.getType());
 
 	        retMap = myList.size() > 0 ? myList.get(0) : null;
-	        //System.out.println("Change = " + retMap.get("c"));
-	      }
- 
-	    
-	    return retMap;
-    
-    
+	    }
+ 	    
+	    return retMap;    
     }
-    
-   
+  
 }

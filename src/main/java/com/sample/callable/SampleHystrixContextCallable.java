@@ -1,4 +1,4 @@
-package com.intuit;
+package com.sample.callable;
 
 
 
@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.slf4j.MDC;
+
+import com.sample.utils.RequestScopeObject;
 
 
 public class SampleHystrixContextCallable<K> implements Callable<K> { 

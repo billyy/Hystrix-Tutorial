@@ -1,4 +1,4 @@
-package com.intuit;
+package com.sample.utils;
 
 import java.util.HashMap;
 import java.util.Map;

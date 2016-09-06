@@ -1,10 +1,11 @@
-package com.intuit;
+package com.sample;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -25,8 +26,17 @@ import com.netflix.config.DynamicPropertyFactory;
 
 import com.netflix.hystrix.strategy.HystrixPlugins;
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext;
+import com.sample.callable.SampleHystrixConcurrencyStrategy;
+import com.sample.commands.StockCommand;
+import com.sample.commands.WeatherCommand;
+import com.sample.logging.LoggingHelper;
+import com.sample.utils.Compute;
+import com.sample.utils.Marshaller;
+import com.sample.utils.RequestScopeObject;
+import com.sample.utils.Utility;
 
 import rx.Observable;
+import rx.Subscriber;
 import rx.observers.TestSubscriber;
 
 
@@ -49,8 +59,6 @@ public class MockAppTest {
     @BeforeClass
     public static void setup() {   	
        	
-       //	HystrixPlugins.reset();
-
       	HystrixPlugins.getInstance().registerConcurrencyStrategy(
 				(new SampleHystrixConcurrencyStrategy()));
     	
@@ -101,18 +109,14 @@ public class MockAppTest {
 
     @Before
     public void init() {
- 
-
-
     	
         context = HystrixRequestContext.initializeContext();
-        RequestScopeObject.set("testWireMock");
-        
+       
         stubFor(get(urlEqualTo("/data/2.5/weather?zip=94040,us"))
                 .willReturn(aResponse()
                     .withHeader("Content-Type", "application/json")
                     .withStatus(200)
-                   .withFixedDelay(500)
+                   .withFixedDelay(1000)
                     .withBody(weatherResponse)));
         
         stubFor(get(urlEqualTo("/finance/info?client=ig&q=INTU"))
@@ -155,7 +159,11 @@ public class MockAppTest {
     
     @After
     public void tearDown() {
+    	
+    	LoggingHelper.log();
+    	
     	WireMock.shutdownServer();
+    	RequestScopeObject.set(null);
     	context.shutdown();
      }
     
@@ -163,8 +171,79 @@ public class MockAppTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(8080);
 
-    
 
+    @Test
+    public void testWeatherCommandSync()
+    {    	
+    	final long startTime = System.currentTimeMillis();
+    	//Get humidity
+    	WeatherCommand wCommand = new WeatherCommand("94040");
+    	Map<String, Double> map = wCommand.execute();
+        System.out.println("Sync Duration = " + (System.currentTimeMillis() - startTime));      
+     }
+    
+    @Test
+    public void testWeatherCommandASync() throws InterruptedException, ExecutionException
+    {    	
+    	final long startTime = System.currentTimeMillis();
+    	//Get humidity
+    	WeatherCommand wCommand = new WeatherCommand("94040");
+    	Future<Map<String, Double>> f = wCommand.queue();
+        System.out.println("Async Duration = " + (System.currentTimeMillis() - startTime));    
+
+        Map<String, Double> map = f.get();
+	    
+  		System.out.println("Async Complete Duration = " + (System.currentTimeMillis() - startTime));    		
+       
+    }
+    
+    @Test
+    public void testWeatherCommandReactive() throws InterruptedException
+    {    	
+        String tid = UUID.randomUUID().toString();
+		System.out.println("Tracking id = " + tid);
+		RequestScopeObject.set(tid);
+    	
+    	final long startTime = System.currentTimeMillis();
+    	//Get humidity
+    	WeatherCommand wCommand = new WeatherCommand("94040");
+    	Observable<Map<String, Double>> o = wCommand.observe();
+        System.out.println("Reactive Duration = " + (System.currentTimeMillis() - startTime));    
+        CountDownLatch latch = new CountDownLatch(1);
+        
+ 			o.subscribe(new Subscriber<Map<String, Double>>() {
+
+				@Override
+				public void onCompleted() {
+					// TODO Auto-generated method stub
+			        System.out.println("Reactive Complete Duration = " + (System.currentTimeMillis() - startTime));    			
+			        latch.countDown();
+				}
+
+				@Override
+				public void onError(Throwable arg0) {
+					// TODO Auto-generated method stub	
+				}
+
+				@Override
+				public void onNext(Map<String, Double> arg0) {
+					// TODO Auto-generated method stub
+					System.out.println("OnNext");
+				}
+ 				
+ 			});
+ 			 			
+ 			latch.await();
+    
+    }
+    
+    @Test
+    public void testWeatherCommandNIO() {
+    	
+    }
+    
+    
+    
     @Test
     public void testSync()
     {

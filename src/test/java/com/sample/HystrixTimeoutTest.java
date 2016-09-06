@@ -1,4 +1,4 @@
-package com.intuit;
+package com.sample;
 
 
 
@@ -8,7 +8,6 @@ import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
-import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -20,19 +19,16 @@ import static org.junit.Assert.fail;
 
 public class HystrixTimeoutTest {
 
-    private HystrixRequestContext context;
-
-
-
     @Test(expected = HystrixRuntimeException.class)
     public void testTimeout () {
-    	context = HystrixRequestContext.initializeContext();
+    	
+    	
         final Thread currentThread = Thread.currentThread();
         HystrixCommand.Setter setter = HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("groupKey"))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
                         .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
-                        //.withExecutionTimeoutEnabled(true)
-                        //.withExecutionTimeoutInMilliseconds(500)
+                        .withExecutionTimeoutEnabled(true)
+                        .withExecutionTimeoutInMilliseconds(1000)
                         );
         new HystrixCommand<Void>(setter) {
             @Override
@@ -41,11 +37,11 @@ public class HystrixTimeoutTest {
                 assertEquals(Thread.currentThread(), currentThread);
 
                 // Pause to allow Hystrix to timeout
-                Thread.sleep(1000);
+                Thread.sleep(2000);
                 return null;
             }
         }.execute();
-        context.shutdown();
+               
         // we don't get here
         fail();
     }

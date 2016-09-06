@@ -1,4 +1,4 @@
-package com.intuit;
+package com.sample.commands;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -23,29 +22,35 @@ import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandProperties;
+import com.netflix.hystrix.exception.HystrixTimeoutException;
 //import com.netflix.hystrix.exception.HystrixTimeoutException;
+import com.sample.utils.RequestScopeObject;
 
 import java.io.IOException;
 
 
 
+@SuppressWarnings("deprecation")
 public final class WeatherCommand extends HystrixCommand<Map<String, Double>> {
 	private final static String QUERY_FORMAT = "/data/2.5/weather?zip=%s,us";;
 	private final String query;
     public WeatherCommand(String zip) {
         super(HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("WeatherGroup"))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
-                        //.withExecutionTimeoutInMilliseconds(5000)
+                		//.withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
+                        .withExecutionTimeoutEnabled(true)
+                        .withExecutionTimeoutInMilliseconds(2000)
                         ));
         
           
         query = String.format(QUERY_FORMAT, zip);
     }
 
-    @SuppressWarnings({ "unchecked", "deprecation", "resource" })
+    @SuppressWarnings({ "unchecked",  "resource" })
 	@Override
-    protected Map<String, Double> run() throws ClientProtocolException, IOException //, HystrixTimeoutException 
+    protected Map<String, Double> run() throws ClientProtocolException, IOException, HystrixTimeoutException 
     {
+    	//Print the value in the request context
     	System.out.println("Request Scope Object = " + RequestScopeObject.get());
     	
     	
@@ -59,7 +64,7 @@ public final class WeatherCommand extends HystrixCommand<Map<String, Double>> {
 			    .getIntProperty("com.intuit.external.weather.port", 80)
 			    .get();
 
-		  System.out.println(url + ":" + port);
+		  //System.out.println(url + ":" + port);
 	      HttpHost target = new HttpHost(url, port, "http");
 	       
 		
@@ -80,8 +85,7 @@ public final class WeatherCommand extends HystrixCommand<Map<String, Double>> {
 		      }
  
 	      } catch(ConnectTimeoutException ex) {
-	    	  //So Hystrix will count this one as time-out, not failure.
-	    	 // throw new HystrixTimeoutException();
+	    	 throw new HystrixTimeoutException();
 	      }
 	    
 	    return (Map<String, Double>)retMap.get("main");
