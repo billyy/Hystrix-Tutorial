@@ -6,6 +6,7 @@ Provide examples on how to use Hystrix.
   - Asynchronous
   - Reactive
   - Thread pool vs Semaphore
+
 ## HystrixObservableCommand for NIO
 ## Callable Wrapper for TLS
 ## Logging Metrics
