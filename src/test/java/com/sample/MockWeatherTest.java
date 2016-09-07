@@ -25,6 +25,7 @@ import com.netflix.hystrix.strategy.HystrixPlugins;
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext;
 import com.sample.callable.SampleHystrixConcurrencyStrategy;
 import com.sample.commands.WeatherCommand;
+import com.sample.commands.WeatherNIOCommand;
 import com.sample.logging.LoggingHelper;
 import com.sample.utils.RequestScopeObject;
 
@@ -156,7 +157,7 @@ public class MockWeatherTest {
 		RequestScopeObject.set(tid);
     	
     	final long startTime = System.currentTimeMillis();
-    	//Get humidity
+    
     	WeatherCommand wCommand = new WeatherCommand("94040");
     	Observable<Map<String, Double>> o = wCommand.observe();
         System.out.println("Reactive Duration = " + (System.currentTimeMillis() - startTime));    
@@ -189,8 +190,41 @@ public class MockWeatherTest {
     }
     
     @Test
-    public void testWeatherCommandNIO() {
-    	
+    public void testWeatherCommandNIO() throws InterruptedException {
+        String tid = UUID.randomUUID().toString();
+ 		System.out.println("Tracking id = " + tid);
+ 		RequestScopeObject.set(tid);
+     	
+     	final long startTime = System.currentTimeMillis();
+     
+     	WeatherNIOCommand wCommand = new WeatherNIOCommand("94040");
+     	Observable<Map<String, Double>> o = wCommand.observe();
+         System.out.println("Reactive Duration = " + (System.currentTimeMillis() - startTime));    
+         CountDownLatch latch = new CountDownLatch(1);
+         
+  			o.subscribe(new Subscriber<Map<String, Double>>() {
+
+ 				@Override
+ 				public void onCompleted() {
+ 					// TODO Auto-generated method stub
+ 			        System.out.println("Reactive Complete Duration = " + (System.currentTimeMillis() - startTime));    			
+ 			        latch.countDown();
+ 				}
+
+ 				@Override
+ 				public void onError(Throwable arg0) {
+ 					// TODO Auto-generated method stub	
+ 				}
+
+ 				@Override
+ 				public void onNext(Map<String, Double> arg0) {
+ 					// TODO Auto-generated method stub
+ 			        arg0.forEach((k,v)->System.out.println("Key : " + k + " Value : " + v));
+ 				}
+  				
+  			});
+  			 			
+  			latch.await();
     } 
     
 }

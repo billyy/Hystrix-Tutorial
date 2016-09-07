@@ -34,6 +34,8 @@ import java.io.IOException;
 public final class WeatherCommand extends HystrixCommand<Map<String, Double>> {
 	private final static String QUERY_FORMAT = "/data/2.5/weather?zip=%s,us";;
 	private final String query;
+	private final static Gson gson = new Gson();
+	
     public WeatherCommand(String zip) {
         super(HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("WeatherGroup"))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
@@ -57,7 +59,7 @@ public final class WeatherCommand extends HystrixCommand<Map<String, Double>> {
 		Map<String, Object> retMap = null;
 		  
 	      // specify the host, protocol, and port
-		String url = DynamicPropertyFactory.getInstance()
+		String host = DynamicPropertyFactory.getInstance()
 			    .getStringProperty("com.intuit.external.weather.host", "api.openweathermap.org")
 			    .get();
 		Integer port = DynamicPropertyFactory.getInstance()
@@ -65,7 +67,7 @@ public final class WeatherCommand extends HystrixCommand<Map<String, Double>> {
 			    .get();
 
 		  //System.out.println(url + ":" + port);
-	      HttpHost target = new HttpHost(url, port, "http");
+	      HttpHost target = new HttpHost(host, port, "http");
 	       
 		
 	       
@@ -81,7 +83,7 @@ public final class WeatherCommand extends HystrixCommand<Map<String, Double>> {
 	      	      
 		      if (entity != null) {
 		        String jsonString = EntityUtils.toString(entity);
-		        retMap = new Gson().fromJson(jsonString, new TypeToken<HashMap<String, Object>>() {}.getType());
+		        retMap = gson.fromJson(jsonString, new TypeToken<HashMap<String, Object>>() {}.getType());
 		      }
  
 	      } catch(ConnectTimeoutException ex) {
