@@ -1,8 +1,10 @@
 package com.sample;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -19,6 +21,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.netflix.config.DynamicPropertyFactory;
 
 import com.netflix.hystrix.strategy.HystrixPlugins;
@@ -26,9 +30,12 @@ import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext;
 import com.sample.callable.SampleHystrixConcurrencyStrategy;
 import com.sample.commands.WeatherCommand;
 import com.sample.commands.WeatherNIOCommand;
+import com.sample.commands.WeatherNIOCommand2;
 import com.sample.logging.LoggingHelper;
 import com.sample.utils.RequestScopeObject;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import rx.Observable;
 import rx.Subscriber;
 
@@ -152,6 +159,7 @@ public class MockWeatherTest {
     @Test
     public void testWeatherCommandReactive() throws InterruptedException
     {    	
+    	System.out.println(Thread.currentThread().getName());
         String tid = UUID.randomUUID().toString();
 		System.out.println("Tracking id = " + tid);
 		RequestScopeObject.set(tid);
@@ -163,27 +171,7 @@ public class MockWeatherTest {
         System.out.println("Reactive Duration = " + (System.currentTimeMillis() - startTime));    
         CountDownLatch latch = new CountDownLatch(1);
         
- 			o.subscribe(new Subscriber<Map<String, Double>>() {
-
-				@Override
-				public void onCompleted() {
-					// TODO Auto-generated method stub
-			        System.out.println("Reactive Complete Duration = " + (System.currentTimeMillis() - startTime));    			
-			        latch.countDown();
-				}
-
-				@Override
-				public void onError(Throwable arg0) {
-					// TODO Auto-generated method stub	
-				}
-
-				@Override
-				public void onNext(Map<String, Double> arg0) {
-					// TODO Auto-generated method stub
-			        arg0.forEach((k,v)->System.out.println("Key : " + k + " Value : " + v));
-				}
- 				
- 			});
+ 			o.subscribe(new MySubscriber(startTime, latch));
  			 			
  			latch.await();
     
@@ -192,6 +180,7 @@ public class MockWeatherTest {
     @Test
     public void testWeatherCommandNIO() throws InterruptedException {
         String tid = UUID.randomUUID().toString();
+        System.out.println(Thread.currentThread().getName());
  		System.out.println("Tracking id = " + tid);
  		RequestScopeObject.set(tid);
      	
@@ -202,29 +191,38 @@ public class MockWeatherTest {
          System.out.println("Reactive Duration = " + (System.currentTimeMillis() - startTime));    
          CountDownLatch latch = new CountDownLatch(1);
          
-  			o.subscribe(new Subscriber<Map<String, Double>>() {
-
- 				@Override
- 				public void onCompleted() {
- 					// TODO Auto-generated method stub
- 			        System.out.println("Reactive Complete Duration = " + (System.currentTimeMillis() - startTime));    			
- 			        latch.countDown();
- 				}
-
- 				@Override
- 				public void onError(Throwable arg0) {
- 					// TODO Auto-generated method stub	
- 				}
-
- 				@Override
- 				public void onNext(Map<String, Double> arg0) {
- 					// TODO Auto-generated method stub
- 			        arg0.forEach((k,v)->System.out.println("Key : " + k + " Value : " + v));
- 				}
-  				
-  			});
+         o.subscribe(new MySubscriber(startTime, latch));
   			 			
-  			latch.await();
+  		 latch.await();
     } 
     
+    private static class MySubscriber extends Subscriber<Map<String, Double>> {
+    		private final long startTime;
+    		private final CountDownLatch latch;
+    		
+    		public MySubscriber(long startTime, CountDownLatch latch) {
+    			this.latch = latch;
+    			this.startTime = startTime;
+    		}
+    		
+			@Override
+			public void onCompleted() {
+				// TODO Auto-generated method stub
+		        System.out.println("Reactive Complete Duration = " + (System.currentTimeMillis() - startTime));    			
+		        latch.countDown();
+			}
+
+			@Override
+			public void onError(Throwable arg0) {
+				// TODO Auto-generated method stub	
+			}
+
+			@Override
+			public void onNext(Map<String, Double> arg0) {
+			     System.out.println("OnNext Duration = " + (System.currentTimeMillis() - startTime));    
+				 System.out.println(Thread.currentThread().getName());
+		         arg0.forEach((k,v)->System.out.println("Key : " + k + " Value : " + v));
+			}
+    }
+ 
 }
