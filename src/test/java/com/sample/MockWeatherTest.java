@@ -1,10 +1,10 @@
 package com.sample;
 
-import java.io.InputStream;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Scanner;
+
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -21,8 +21,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.netflix.config.DynamicPropertyFactory;
 
 import com.netflix.hystrix.strategy.HystrixPlugins;
@@ -30,12 +28,9 @@ import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext;
 import com.sample.callable.SampleHystrixConcurrencyStrategy;
 import com.sample.commands.WeatherCommand;
 import com.sample.commands.WeatherNIOCommand;
-import com.sample.commands.WeatherNIOCommand2;
 import com.sample.logging.LoggingHelper;
 import com.sample.utils.RequestScopeObject;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
 import rx.Observable;
 import rx.Subscriber;
 
