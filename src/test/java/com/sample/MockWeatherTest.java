@@ -183,7 +183,7 @@ public class MockWeatherTest {
      
      	WeatherNIOCommand wCommand = new WeatherNIOCommand("94040");
      	Observable<Map<String, Double>> o = wCommand.observe();
-         System.out.println("Reactive Duration = " + (System.currentTimeMillis() - startTime));    
+         System.out.println("NIO Duration = " + (System.currentTimeMillis() - startTime));    
          CountDownLatch latch = new CountDownLatch(1);
          
          o.subscribe(new MySubscriber(startTime, latch));
@@ -201,15 +201,17 @@ public class MockWeatherTest {
     		}
     		
 			@Override
-			public void onCompleted() {
-				// TODO Auto-generated method stub
+			public void onCompleted() {				
 		        System.out.println("Reactive Complete Duration = " + (System.currentTimeMillis() - startTime));    			
 		        latch.countDown();
 			}
 
 			@Override
 			public void onError(Throwable arg0) {
-				// TODO Auto-generated method stub	
+		        System.out.println("Error Duration = " + (System.currentTimeMillis() - startTime));    			
+		        System.out.println(arg0.getMessage());    			
+		        latch.countDown();
+				
 			}
 
 			@Override

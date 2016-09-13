@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -16,8 +17,13 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.reactivex.netty.RxNetty;
+import io.reactivex.netty.client.RxClient;
+import io.reactivex.netty.protocol.http.client.HttpClient;
+import io.reactivex.netty.protocol.http.client.HttpClientBuilder;
 import io.reactivex.netty.protocol.http.client.HttpClientRequest;
 import io.reactivex.netty.protocol.http.client.HttpClientResponse;
+import io.reactivex.netty.client.RxClient.ClientConfig.Builder;
+
 
 public class WeatherNIOCommand extends HystrixObservableCommand<Map<String, Double>> {
 
@@ -27,7 +33,7 @@ public class WeatherNIOCommand extends HystrixObservableCommand<Map<String, Doub
 
     public WeatherNIOCommand(String zip) {
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("WeatherGroup"))
-                .andCommandKey(HystrixCommandKey.Factory.asKey("MiddleTier"))
+                .andCommandKey(HystrixCommandKey.Factory.asKey("WeatherNIOCommand"))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
                         .withExecutionIsolationSemaphoreMaxConcurrentRequests(10)
                         .withExecutionTimeoutInMilliseconds(2000))); 
@@ -44,8 +50,13 @@ public class WeatherNIOCommand extends HystrixObservableCommand<Map<String, Doub
 			    .getIntProperty("com.intuit.external.weather.port", 80)
 			    .get();
 
+        int timeoutMillis = 2000;
+        RxClient.ClientConfig clientConfig = new Builder(null)
+                .readTimeout(timeoutMillis, TimeUnit.MILLISECONDS).build();
+        HttpClient<ByteBuf, ByteBuf> client = new HttpClientBuilder<ByteBuf, ByteBuf>(host, port)
+                .config(clientConfig).build();
              
-       return RxNetty.createHttpClient(host, port)
+        return client
                 .submit(HttpClientRequest.createGet(query))
                 .flatMap((HttpClientResponse<ByteBuf> r) -> 
                 r.getContent().map(b -> 
