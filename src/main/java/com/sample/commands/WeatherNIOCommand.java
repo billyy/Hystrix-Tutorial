@@ -16,7 +16,7 @@ import com.netflix.hystrix.HystrixObservableCommand;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import io.reactivex.netty.RxNetty;
+
 import io.reactivex.netty.client.RxClient;
 import io.reactivex.netty.protocol.http.client.HttpClient;
 import io.reactivex.netty.protocol.http.client.HttpClientBuilder;

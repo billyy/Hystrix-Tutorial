@@ -90,6 +90,7 @@ public class MockWeatherTest {
     	
     	config.addProperty("com.intuit.external.weather.host", "localhost");
     	config.addProperty("com.intuit.external.weather.port", "8080");
+    	config.addProperty("hystrix.command.WeatherCommand.circuitBreaker.forceOpen", false);
         
     }   
 
