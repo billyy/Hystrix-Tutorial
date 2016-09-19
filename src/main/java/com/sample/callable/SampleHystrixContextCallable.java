@@ -12,7 +12,7 @@ import com.sample.utils.RequestScopeObject;
 
 public class SampleHystrixContextCallable<K> implements Callable<K> { 
 
-		private Map parentMDC;
+		private Map<String, String> parentMDC;
 		private String value = null;
 
 		private final Callable<K> actual;
@@ -26,7 +26,7 @@ public class SampleHystrixContextCallable<K> implements Callable<K> {
 		public K call() throws Exception {
 			RequestScopeObject.set(value);
 			
-			Map childMDC = MDC.getCopyOfContextMap();
+			Map<String, String> childMDC = MDC.getCopyOfContextMap();
 			try {
 				if(parentMDC != null) 
 					MDC.setContextMap(parentMDC);							
