@@ -26,7 +26,7 @@ import io.reactivex.netty.client.RxClient.ClientConfig.Builder;
 
 /**
  * This is a NIO example using HystrixObserableCommand and RxNetty.
- * 1.  The construct method will NOT blocked on return since it is NIO.
+ * 1.  The construct method will NOT block on return since it is using NIO.
  * 2.  Semaphore is used here to limit concurrent requests (throttling at 10).
  * 3.  Actual timeout is configured in the RxNetty (readTimeout).
  * 
