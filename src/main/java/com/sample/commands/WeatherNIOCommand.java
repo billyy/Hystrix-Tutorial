@@ -24,7 +24,15 @@ import io.reactivex.netty.protocol.http.client.HttpClientRequest;
 import io.reactivex.netty.protocol.http.client.HttpClientResponse;
 import io.reactivex.netty.client.RxClient.ClientConfig.Builder;
 
-
+/**
+ * This is a NIO example using HystrixObserableCommand and RxNetty.
+ * 1.  The construct method will NOT blocked on return since it is NIO.
+ * 2.  Semaphore is used here to limit concurrent requests (throttling at 10).
+ * 3.  Actual timeout is configured in the RxNetty (readTimeout).
+ * 
+ * @author byuen
+ *
+ */
 public class WeatherNIOCommand extends HystrixObservableCommand<Map<String, Double>> {
 
     private final static String QUERY_FORMAT = "/data/2.5/weather?zip=%s,us";

@@ -5,6 +5,12 @@ import com.netflix.hystrix.HystrixInvokableInfo;
 import com.netflix.hystrix.HystrixRequestLog;
 import com.sample.utils.RequestScopeObject;
 
+/**
+ * Record metrics for all Hystrix Commands for a request.   This code can be used in a servlet filter.
+ * Additional metrics (fallback status) can be found in the Hystrix wiki.
+ * @author byuen
+ *
+ */
 public class LoggingHelper {
     public static void log() {
         for (HystrixInvokableInfo<?> hystrixCommand : HystrixRequestLog.getCurrentRequest().getAllExecutedCommands()) {
