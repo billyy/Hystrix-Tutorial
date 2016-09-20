@@ -1,7 +1,6 @@
 package com.sample;
 
 
-
 import org.junit.Test;
 
 import com.netflix.hystrix.HystrixCommand;
@@ -20,16 +19,14 @@ import static org.junit.Assert.fail;
 public class HystrixTimeoutTest {
 
     @Test(expected = HystrixRuntimeException.class)
-    public void testTimeout () {
-    	
-    	
+    public void testTimeout() {
         final Thread currentThread = Thread.currentThread();
         HystrixCommand.Setter setter = HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("groupKey"))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
                         .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
                         .withExecutionTimeoutEnabled(true)
                         .withExecutionTimeoutInMilliseconds(1000)
-                        );
+                );
         new HystrixCommand<Void>(setter) {
             @Override
             protected Void run() throws Exception {
@@ -41,7 +38,7 @@ public class HystrixTimeoutTest {
                 return null;
             }
         }.execute();
-               
+
         // we don't get here
         fail();
     }

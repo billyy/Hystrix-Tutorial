@@ -29,71 +29,70 @@ import com.sample.utils.RequestScopeObject;
 import java.io.IOException;
 
 
-
 @SuppressWarnings("deprecation")
 public final class WeatherCommand extends HystrixCommand<Map<String, Double>> {
-	private final static String QUERY_FORMAT = "/data/2.5/weather?zip=%s,us";;
-	private final String query;
-	private final static Gson gson = new Gson();
-	
+    private final static String QUERY_FORMAT = "/data/2.5/weather?zip=%s,us";
+    ;
+    private final String query;
+    private final static Gson gson = new Gson();
+
     public WeatherCommand(String zip) {
         super(HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("WeatherGroup"))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
-                		//.withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
+                        //.withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
                         .withExecutionTimeoutEnabled(true)
                         .withExecutionTimeoutInMilliseconds(2000)
-                        ));
-        
-          
+                ));
+
+
         query = String.format(QUERY_FORMAT, zip);
     }
 
-    @SuppressWarnings({ "unchecked",  "resource" })
-	@Override
-    protected Map<String, Double> run() throws ClientProtocolException, IOException, HystrixTimeoutException 
-    {
-    	//Print the value in the request context
-    	System.out.println("Request Scope Object = " + RequestScopeObject.get());
-    	
-    	
-		Map<String, Object> retMap = null;
-		  
-	      // specify the host, protocol, and port
-		String host = DynamicPropertyFactory.getInstance()
-			    .getStringProperty("com.intuit.external.weather.host", "api.openweathermap.org")
-			    .get();
-		Integer port = DynamicPropertyFactory.getInstance()
-			    .getIntProperty("com.intuit.external.weather.port", 80)
-			    .get();
+    @SuppressWarnings({"unchecked", "resource"})
+    @Override
+    protected Map<String, Double> run() throws IOException, HystrixTimeoutException {
+        //Print the value in the request context
+        System.out.println("Request Scope Object = " + RequestScopeObject.get());
 
-		  //System.out.println(url + ":" + port);
-	      HttpHost target = new HttpHost(host, port, "http");
-	       
-		
-	       
-	      // specify the get request
-	      HttpGet getRequest = new HttpGet(query);	 
- 	 
-	      try {
-	      	final HttpParams httpParams = new BasicHttpParams();
-	    	HttpConnectionParams.setConnectionTimeout(httpParams, 1);
-	    	HttpClient httpClient = new DefaultHttpClient(httpParams);
-	        HttpResponse httpResponse = httpClient.execute(target, getRequest);
-	        HttpEntity entity = httpResponse.getEntity();
-	      	      
-		      if (entity != null) {
-		        String jsonString = EntityUtils.toString(entity);
-		        retMap = gson.fromJson(jsonString, new TypeToken<HashMap<String, Object>>() {}.getType());
-		      }
- 
-	      } catch(ConnectTimeoutException ex) {
-	    	 throw new HystrixTimeoutException();
-	      }
-	    
-	    return (Map<String, Double>)retMap.get("main");
-    
-    
+
+        Map<String, Object> retMap = null;
+
+        // specify the host, protocol, and port
+        String host = DynamicPropertyFactory.getInstance()
+                .getStringProperty("com.intuit.external.weather.host", "api.openweathermap.org")
+                .get();
+        Integer port = DynamicPropertyFactory.getInstance()
+                .getIntProperty("com.intuit.external.weather.port", 80)
+                .get();
+
+        //System.out.println(url + ":" + port);
+        HttpHost target = new HttpHost(host, port, "http");
+
+
+        // specify the get request
+        HttpGet getRequest = new HttpGet(query);
+
+        try {
+            final HttpParams httpParams = new BasicHttpParams();
+            HttpConnectionParams.setConnectionTimeout(httpParams, 1);
+            HttpClient httpClient = new DefaultHttpClient(httpParams);
+            HttpResponse httpResponse = httpClient.execute(target, getRequest);
+            HttpEntity entity = httpResponse.getEntity();
+
+            if (entity != null) {
+                String jsonString = EntityUtils.toString(entity);
+                retMap = gson.fromJson(jsonString, new TypeToken<HashMap<String, Object>>() {
+                }.getType());
+            }
+
+        } catch (ConnectTimeoutException ex) {
+            throw new HystrixTimeoutException();
+        }
+
+        return (Map<String, Double>) retMap.get("main");
+
+
     }
-    
-   
+
+
 }

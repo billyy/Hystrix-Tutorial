@@ -8,8 +8,8 @@ import com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategy;
 
 public class SampleHystrixConcurrencyStrategy extends HystrixConcurrencyStrategy {
 
-	@Override
-	public <K> Callable<K> wrapCallable(Callable<K> callable) {
-		return new SampleHystrixContextCallable<K>(callable); 
-	}
+    @Override
+    public <K> Callable<K> wrapCallable(Callable<K> callable) {
+        return new SampleHystrixContextCallable<K>(callable);
+    }
 }
