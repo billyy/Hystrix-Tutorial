@@ -183,6 +183,7 @@ public class MockWeatherTest {
         System.out.println("NIO Duration = " + (System.currentTimeMillis() - startTime));
         CountDownLatch latch = new CountDownLatch(1);
 
+        //The following code will print the Hystrix Thread Name and it will be the NIO thread in this case (not the caller thread).
         o.subscribe(new MySubscriber(startTime, latch));
 
         latch.await();
