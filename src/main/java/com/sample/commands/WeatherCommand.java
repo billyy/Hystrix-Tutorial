@@ -23,8 +23,6 @@ import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.exception.HystrixTimeoutException;
-//import com.netflix.hystrix.exception.HystrixTimeoutException;
-import com.sample.utils.RequestScopeObject;
 
 import java.io.IOException;
 
@@ -52,7 +50,6 @@ public final class WeatherCommand extends HystrixCommand<Map<String, Double>> {
     @Override
     protected Map<String, Double> run() throws IOException, HystrixTimeoutException {
         //Print the value in the request context
-        System.out.println("Request Scope Object = " + RequestScopeObject.get());
 
 
         Map<String, Object> retMap = null;
